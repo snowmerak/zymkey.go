@@ -122,3 +122,79 @@ func (z *Zymkey) Now() (time.Time, error) {
 
 	return time.Unix(int64(epochTime), 0), nil
 }
+
+func (z *Zymkey) LEDOff() error {
+	ret := C.zkLEDOff(z.ctx)
+	if ret < 0 {
+		return fmt.Errorf("zkLEDOff() failed with code %d", ret)
+	}
+	return nil
+}
+
+func (z *Zymkey) LEDOn() error {
+	ret := C.zkLEDOn(z.ctx)
+	if ret < 0 {
+		return fmt.Errorf("zkLEDOn() failed with code %d", ret)
+	}
+	return nil
+}
+
+func (z *Zymkey) LEDFlash(onDuration, offDuration time.Duration, numFlashes int) error {
+	onMs := C.uint32_t(onDuration.Milliseconds())
+	offMs := C.uint32_t(offDuration.Milliseconds())
+	count := C.uint32_t(numFlashes)
+
+	ret := C.zkLEDFlash(z.ctx, onMs, offMs, count)
+	if ret < 0 {
+		return fmt.Errorf("zkLEDFlash() failed with code %d", ret)
+	}
+	return nil
+}
+
+func (z *Zymkey) GetModelNumber() (string, error) {
+	var cStr *C.char
+	ret := C.zkGetModelNumberString(z.ctx, &cStr)
+	if ret < 0 {
+		return "", fmt.Errorf("zkGetModelNumberString() failed with code %d", ret)
+	}
+	defer C.free(unsafe.Pointer(cStr))
+	return C.GoString(cStr), nil
+}
+
+func (z *Zymkey) GetFirmwareVersion() (string, error) {
+	var cStr *C.char
+	ret := C.zkGetFirmwareVersionString(z.ctx, &cStr)
+	if ret < 0 {
+		return "", fmt.Errorf("zkGetFirmwareVersionString() failed with code %d", ret)
+	}
+	defer C.free(unsafe.Pointer(cStr))
+	return C.GoString(cStr), nil
+}
+
+func (z *Zymkey) GetSerialNumber() (string, error) {
+	var cStr *C.char
+	ret := C.zkGetSerialNumberString(z.ctx, &cStr)
+	if ret < 0 {
+		return "", fmt.Errorf("zkGetSerialNumberString() failed with code %d", ret)
+	}
+	defer C.free(unsafe.Pointer(cStr))
+	return C.GoString(cStr), nil
+}
+
+func (z *Zymkey) GetCPUTemp() (float32, error) {
+	var temp C.float
+	ret := C.zkGetCPUTemp(z.ctx, &temp)
+	if ret < 0 {
+		return 0, fmt.Errorf("zkGetCPUTemp() failed with code %d", ret)
+	}
+	return float32(temp), nil
+}
+
+func (z *Zymkey) GetBatteryVoltage() (float32, error) {
+	var volt C.float
+	ret := C.zkGetBatteryVoltage(z.ctx, &volt)
+	if ret < 0 {
+		return 0, fmt.Errorf("zkGetBatteryVoltage() failed with code %d", ret)
+	}
+	return float32(volt), nil
+}

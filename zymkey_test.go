@@ -3,6 +3,7 @@ package zymkey
 import (
 	"bytes"
 	"testing"
+	"time"
 )
 
 func TestZymkey(t *testing.T) {
@@ -69,5 +70,57 @@ func TestZymkey(t *testing.T) {
 			t.Error("Returned zero time")
 		}
 		t.Logf("Current Zymkey time: %v", ts)
+	})
+
+	t.Run("InfoStrings", func(t *testing.T) {
+		model, err := zk.GetModelNumber()
+		if err != nil {
+			t.Errorf("GetModelNumber failed: %v", err)
+		} else {
+			t.Logf("Model Number: %s", model)
+		}
+
+		fw, err := zk.GetFirmwareVersion()
+		if err != nil {
+			t.Errorf("GetFirmwareVersion failed: %v", err)
+		} else {
+			t.Logf("Firmware Version: %s", fw)
+		}
+
+		serial, err := zk.GetSerialNumber()
+		if err != nil {
+			t.Errorf("GetSerialNumber failed: %v", err)
+		} else {
+			t.Logf("Serial Number: %s", serial)
+		}
+	})
+
+	t.Run("LED", func(t *testing.T) {
+		if err := zk.LEDOn(); err != nil {
+			t.Errorf("LEDOn failed: %v", err)
+		}
+		time.Sleep(100 * time.Millisecond)
+		if err := zk.LEDOff(); err != nil {
+			t.Errorf("LEDOff failed: %v", err)
+		}
+		if err := zk.LEDFlash(100*time.Millisecond, 100*time.Millisecond, 2); err != nil {
+			t.Errorf("LEDFlash failed: %v", err)
+		}
+	})
+
+	t.Run("Sensors", func(t *testing.T) {
+		temp, err := zk.GetCPUTemp()
+		if err != nil {
+			t.Logf("GetCPUTemp failed (might not be supported on this device): %v", err)
+		} else {
+			t.Logf("CPU Temp: %f", temp)
+		}
+
+		volt, err := zk.GetBatteryVoltage()
+		if err != nil {
+			t.Logf("GetBatteryVoltage failed (might not be supported on this device): %v", err)
+		} else {
+			t.Logf("Battery Voltage: %f", volt)
+		}
 	})
 }
